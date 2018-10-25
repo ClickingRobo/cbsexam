@@ -3,7 +3,10 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import cache.ProductCache;
 import model.Product;
+import utils.Config;
 import utils.Log;
 
 public class ProductController {

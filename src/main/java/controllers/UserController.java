@@ -4,11 +4,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import model.User;
+import org.apache.solr.common.util.Hash;
+import utils.Hashing;
 import utils.Log;
 
 public class UserController {
 
   private static DatabaseController dbCon;
+
 
   public UserController() {
     dbCon = new DatabaseController();
@@ -107,14 +110,17 @@ public class UserController {
     }
 
     // Insert the user in the DB
-    // TODO: Hash the user password before saving it.
+    // TODO: Hash the user password before saving it (POSSIBLY FIXED).
+    //Creates object to access method from the class since it's not static
+    Hashing hashing = new Hashing();
+
     int userID = dbCon.insert(
         "INSERT INTO user(first_name, last_name, password, email, created_at) VALUES('"
             + user.getFirstname()
             + "', '"
             + user.getLastname()
             + "', '"
-            + user.getPassword()
+            + hashing.hashAndSalt(user.getPassword())
             + "', '"
             + user.getEmail()
             + "', "

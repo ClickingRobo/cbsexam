@@ -1,5 +1,7 @@
 package model;
 
+import utils.Hashing;
+
 public class User {
 
   public int id;
@@ -8,6 +10,7 @@ public class User {
   public String email;
   private String password;
   private long createdTime;
+
 
   public User(int id, String firstname, String lastname, String password, String email) {
     this.id = id;
