@@ -1,5 +1,6 @@
 package controllers;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -136,6 +137,22 @@ public class UserController {
     }
 
     // Return user
+    return user;
+  }
+
+
+  public static User deleteUser (User user){
+
+    Log.writeLog(UserController.class.getName(), user, "Deleting an existing user from DB", 0);
+
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
+    }
+
+    String sqlDelete = "DELETE FROM user WHERE id = " + user.id;
+
+    dbCon.insert(sqlDelete);
+
     return user;
   }
 }

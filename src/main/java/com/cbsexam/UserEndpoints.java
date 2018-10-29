@@ -1,13 +1,13 @@
 package com.cbsexam;
 
 import com.google.gson.Gson;
+import controllers.DatabaseController;
 import controllers.UserController;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.User;
@@ -16,6 +16,9 @@ import utils.Log;
 
 @Path("user")
 public class UserEndpoints {
+
+  private static Connection connection;
+
 
   /**
    * @param idUser
@@ -56,7 +59,7 @@ public class UserEndpoints {
     String json = new Gson().toJson(users);
 
     //Added encryption
-    json = Encryption.encryptDecryptXOR(json);
+    //json = Encryption.encryptDecryptXOR(json);
 
     // Return the users with the status code 200
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
@@ -95,11 +98,24 @@ public class UserEndpoints {
     return Response.status(400).entity("Endpoint not implemented yet").build();
   }
 
-  // TODO: Make the system able to delete users
-  public Response deleteUser(String x) {
+  // TODO: Make the system able to delete users (FIXED)
+  @DELETE
+  @Path("/{idUser}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response deleteUser(@PathParam("idUser") int idUser) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+
+    User user = UserController.getUser(idUser);
+
+    User deletedUser = UserController.deleteUser(user);
+    if (deletedUser != null) {
+
+      String out = new Gson().toJson("Nu er din user slettet");
+
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
+    } else {
+      return Response.status(400).entity("Could not create user").build();
+    }
   }
 
   // TODO: Make the system able to update users

@@ -100,6 +100,8 @@ public class ProductController {
       dbCon = new DatabaseController();
     }
 
+
+
     // TODO: Use caching layer.
     String sql = "SELECT * FROM product";
 
