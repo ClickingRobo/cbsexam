@@ -1,5 +1,6 @@
 package com.cbsexam;
 
+import cache.OrderCache;
 import com.google.gson.Gson;
 import controllers.OrderController;
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ import utils.Encryption;
 
 @Path("order")
 public class OrderEndpoints {
+
+  OrderCache orderCache = new OrderCache();
 
   /**
    * @param idOrder
@@ -44,7 +47,9 @@ public class OrderEndpoints {
   public Response getOrders() {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Order> orders = OrderController.getOrders();
+    //ArrayList<Order> orders = OrderController.getOrders();
+
+    ArrayList<Order> orders = orderCache.getOrders(false);
 
     // TODO: Add Encryption to JSON (FIXED)
     // We convert the java object to json with GSON library imported in Maven
@@ -54,7 +59,7 @@ public class OrderEndpoints {
     json = Encryption.encryptDecryptXOR(json);
 
     // Return a response with status 200 and JSON as type
-    return Response.status(200).type(MediaType.TEXT_PLAIN_TYPE).entity(json).build();
+    return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
   }
 
   @POST
@@ -74,7 +79,7 @@ public class OrderEndpoints {
     // Return the data to the user
     if (createdOrder != null) {
       // Return a response with status 200 and JSON as type
-      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+      return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
     } else {
 
       // Return a response with status 400 and a message in text

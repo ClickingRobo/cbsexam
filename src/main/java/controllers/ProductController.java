@@ -99,10 +99,9 @@ public class ProductController {
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
+    //Implement some caching here (check cache, if found return, else do the sql-query)
 
-
-
-    // TODO: Use caching layer.
+    // TODO: Use caching layer (FIXED - getProducts method implemented via the Endpoint.)
     String sql = "SELECT * FROM product";
 
     ResultSet rs = dbCon.query(sql);
@@ -113,7 +112,7 @@ public class ProductController {
         Product product =
             new Product(
                 rs.getInt("id"),
-                rs.getString("name"),
+                rs.getString("product_name"),
                 rs.getString("sku"),
                 rs.getFloat("price"),
                 rs.getString("description"),

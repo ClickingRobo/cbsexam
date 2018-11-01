@@ -6,7 +6,7 @@ import utils.Config;
 
 import java.util.ArrayList;
 
-//TODO: Build this cache and use it.
+//TODO: Build this cache and use it (FIXED).
 public class OrderCache {
 
     private ArrayList<Order> orders;
@@ -20,11 +20,11 @@ public class OrderCache {
     }
 
 
-    public ArrayList<Order> getOrders (Boolean foreUpdate){
+    public ArrayList<Order> getOrders (Boolean forceUpdate){
 
-        if (foreUpdate
+        if (forceUpdate
         || ((this.created + this.ttl) >= (System.currentTimeMillis() / 1000L))
-        || this.orders.isEmpty()){
+        || this.orders == null){
 
             ArrayList<Order> orders = OrderController.getOrders();
 

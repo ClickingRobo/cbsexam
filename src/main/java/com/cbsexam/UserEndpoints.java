@@ -1,11 +1,8 @@
 package com.cbsexam;
 
+import cache.UserCache;
 import com.google.gson.Gson;
-import controllers.DatabaseController;
 import controllers.UserController;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -17,7 +14,7 @@ import utils.Log;
 @Path("user")
 public class UserEndpoints {
 
-  private static Connection connection;
+  UserCache userCache = new UserCache();
 
 
   /**
@@ -52,11 +49,17 @@ public class UserEndpoints {
     Log.writeLog(this.getClass().getName(), this, "Get all users", 0);
 
     // Get a list of users
-    ArrayList<User> users = UserController.getUsers();
+    //ArrayList<User> users = UserController.getUsers();
+
+    ArrayList<User> users = userCache.getUsers(false);
 
     // TODO: Add Encryption to JSON (FIXED)
     // Transfer users to json in order to return it to the user
     String json = new Gson().toJson(users);
+
+    if (users == null){
+      userCache.getUsers(true);
+    }
 
     //Added encryption
     //json = Encryption.encryptDecryptXOR(json);
@@ -94,8 +97,19 @@ public class UserEndpoints {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response loginUser(String x) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    User newUser = new Gson().fromJson(x, User.class);
+
+    User user = UserController.userAuthentication(newUser);
+
+    if (user != null) {
+
+      String out = new Gson().toJson(user);
+
+      // Return a response with status 200 and JSON as type
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
+    } else {
+      return Response.status(400).entity("Could not create user").build();
+    }
   }
 
   // TODO: Make the system able to delete users (FIXED)
@@ -110,18 +124,31 @@ public class UserEndpoints {
     User deletedUser = UserController.deleteUser(user);
     if (deletedUser != null) {
 
-      String out = new Gson().toJson("Nu er din user slettet");
+      String out = new Gson().toJson("Your user has now been deleted");
 
       return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
     } else {
-      return Response.status(400).entity("Could not create user").build();
+      return Response.status(400).entity("Your user COULD NOT be deleted").build();
     }
   }
 
   // TODO: Make the system able to update users
-  public Response updateUser(String x) {
+  @POST
+  @Path("/{idUser}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response updateUser(@PathParam("idUser") int idUser) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    User user = UserController.getUser(idUser);
+
+    User updatedUser = UserController.updateUser(user);
+
+    if (updatedUser !=null) {
+
+      String out = new Gson().toJson("Your user has now been updated");
+
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
+    } else {
+      return Response.status(400).entity("Your user COULD NOT be updated").build();
+    }
   }
 }

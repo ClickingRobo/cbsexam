@@ -112,8 +112,9 @@ public final class Hashing {
   //Sets salt and then applies the hashing of the string + salt variables
   public String hashAndSalt (String str){
     setSalt(salt,currentTimeSalt);
-    String newString = str + this.salt + this.currentTimeSalt;
-    return performHash(newString);
+    String saltCombined = this.salt + this.currentTimeSalt;
+    String passAndSalt = str + saltCombined;
+    return performHash(passAndSalt);
   }
 }
 

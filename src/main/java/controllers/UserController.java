@@ -4,6 +4,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import cache.UserCache;
 import model.User;
 import org.apache.solr.common.util.Hash;
 import utils.Hashing;
@@ -12,7 +14,6 @@ import utils.Log;
 public class UserController {
 
   private static DatabaseController dbCon;
-
 
   public UserController() {
     dbCon = new DatabaseController();
@@ -36,12 +37,12 @@ public class UserController {
       // Get first object, since we only have one
       if (rs.next()) {
         user =
-            new User(
-                rs.getInt("id"),
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("password"),
-                rs.getString("email"));
+                new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"));
 
         // return the create object
         return user;
@@ -79,12 +80,12 @@ public class UserController {
       // Loop through DB Data
       while (rs.next()) {
         User user =
-            new User(
-                rs.getInt("id"),
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("password"),
-                rs.getString("email"));
+                new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"));
 
         // Add element to list
         users.add(user);
@@ -116,22 +117,22 @@ public class UserController {
     Hashing hashing = new Hashing();
 
     int userID = dbCon.insert(
-        "INSERT INTO user(first_name, last_name, password, email, created_at) VALUES('"
-            + user.getFirstname()
-            + "', '"
-            + user.getLastname()
-            + "', '"
-            + hashing.hashAndSalt(user.getPassword())
-            + "', '"
-            + user.getEmail()
-            + "', "
-            + user.getCreatedTime()
-            + ")");
+            "INSERT INTO user(first_name, last_name, password, email, created_at) VALUES('"
+                    + user.getFirstname()
+                    + "', '"
+                    + user.getLastname()
+                    + "', '"
+                    + hashing.hashAndSalt(user.getPassword())
+                    + "', '"
+                    + user.getEmail()
+                    + "', "
+                    + user.getCreatedTime()
+                    + ")");
 
     if (userID != 0) {
       //Update the userid of the user before returning
       user.setId(userID);
-    } else{
+    } else {
       // Return null if user has not been inserted into database
       return null;
     }
@@ -141,7 +142,7 @@ public class UserController {
   }
 
 
-  public static User deleteUser (User user){
+  public static User deleteUser(User user) {
 
     Log.writeLog(UserController.class.getName(), user, "Deleting an existing user from DB", 0);
 
@@ -149,10 +150,57 @@ public class UserController {
       dbCon = new DatabaseController();
     }
 
-    String sqlDelete = "DELETE FROM user WHERE id = " + user.id;
+    String sqlDelete = "DELETE * FROM user WHERE id = " + user.id;
 
     dbCon.insert(sqlDelete);
 
+    return user;
+  }
+
+
+  //Make some logic so that you can't change to an existing email adress and hash password whilst creating after a new password
+  public static User updateUser(User user) {
+
+    Log.writeLog(UserController.class.getName(), user, "Updating an existing user from DB", 0);
+
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
+    }
+
+    //Apply some logic so that 2x users cannot have the same email adress!
+    String sqlUpdate = "UPDATE * FROM user SET firstname = ?, lastname = ? WHERE id = " + user.id;
+
+    dbCon.insert(sqlUpdate);
+
+    return user;
+  }
+
+
+  public static User userAuthentication (User user) {
+
+    Log.writeLog(UserController.class.getName(), user, "Authenticating the user/log in", 0);
+
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
+    }
+
+    //Authenticate user-login via email and password
+    try {
+      String sql = "SELECT * FROM user where email= \'" + user.getEmail() + "\' AND password = \'" + user.getPassword() + "\'";
+      ResultSet rs = dbCon.query(sql);
+      if (rs.next()) {
+        user =
+                new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"));
+
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
     return user;
   }
 }
