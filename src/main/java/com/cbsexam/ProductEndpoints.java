@@ -17,8 +17,8 @@ import utils.Encryption;
 @Path("product")
 public class ProductEndpoints {
 
-  //global variable so that the cache doesn't seize to exist when the method is run
-  ProductCache productCache = new ProductCache();
+  //has to be static so it can be saved between requests and not updated every single time
+  static ProductCache productCache = new ProductCache();
 
   /**
    * @param idProduct

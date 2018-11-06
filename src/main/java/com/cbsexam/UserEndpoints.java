@@ -14,7 +14,8 @@ import utils.Log;
 @Path("user")
 public class UserEndpoints {
 
-  UserCache userCache = new UserCache();
+  //has to be static so it can be saved between requests and not updated every single time
+  static UserCache userCache = new UserCache();
 
 
   /**

@@ -21,9 +21,13 @@ public class UserCache {
 
 
     public ArrayList<User> getUsers(Boolean forceUpdate){
+        //USED FOR DEBUGGING:
+        //System.out.println(forceUpdate);
+        //System.out.println(this.ttl);
+        //System.out.println(System.currentTimeMillis() / 1000L);
 
         if (forceUpdate
-        || ((this.created + this.ttl) >= (System.currentTimeMillis() / 1000L))
+        || ((this.created / 1000L + this.ttl) >= (System.currentTimeMillis() / 1000L))
         || this.users == null){
 
             ArrayList<User> users = UserController.getUsers();

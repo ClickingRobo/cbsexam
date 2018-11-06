@@ -17,7 +17,8 @@ import utils.Encryption;
 @Path("order")
 public class OrderEndpoints {
 
-  OrderCache orderCache = new OrderCache();
+  //has to be static so it can be saved between requests and not updated every single time
+  static OrderCache orderCache = new OrderCache();
 
   /**
    * @param idOrder
