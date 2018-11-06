@@ -17,16 +17,16 @@ public final class Hashing {
   private String currentTimeSalt = Long.toString(System.currentTimeMillis());
 
 
-
-
-
-  // TODO: You should add a salt and make this secure (USING SHA-2 FOR NOW)
-  public static String md5(String rawString) {
+  // TODO: You should add a salt and make this secure (FIXED)
+  public static String md5(String rawString, String salt) {
 
     try {
 
       // We load the hashing algoritm we wish to use.
       MessageDigest md = MessageDigest.getInstance("MD5");
+
+      //adds the salt to the rawstring so that the hashing is done on the password and salt values
+      rawString += salt;
 
       // We convert to byte array
       byte[] byteArray = md.digest(rawString.getBytes());
@@ -54,10 +54,13 @@ public final class Hashing {
 
 
   // TODO: You should add a salt and make this secure (FIXED)
-  public static String sha(String rawString) {
+  public static String sha(String rawString, String salt) {
     try {
       // We load the hashing algoritm we wish to use.
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+      //adds the salt to the rawstring so that the hashing is done on the password and salt values
+      rawString += salt;
 
       // We convert to byte array
       byte[] hash = digest.digest(rawString.getBytes(StandardCharsets.UTF_8));
@@ -76,10 +79,6 @@ public final class Hashing {
   }
 
 
-
-
-
-
   //----------------------------------------------------------------------------------------------
   //References: YouTube: Java Basics - StringBuilder - https://www.youtube.com/watch?v=MxfmXw2O64E
   //YouTube: How to generate random numeric[...] https://www.youtube.com/watch?v=kgx33gkBPWI
@@ -92,13 +91,6 @@ public final class Hashing {
     return sb.toString();
   }
 
-
-
-  //Hashes with sha-2 algorithm
-  public String performHash (String str){
-    return Hashing.sha(str);
-  }
-
   //Performs randomization of salt String variable
   public String performSalt (String salt){
     return Hashing.randomizeSalt(salt);
@@ -109,12 +101,10 @@ public final class Hashing {
     this.currentTimeSalt = currentTimeSalt;
   }
 
-  //Sets salt and then applies the hashing of the string + salt variables
-  public String hashAndSalt (String str){
-    setSalt(salt,currentTimeSalt);
-    String saltCombined = this.salt + this.currentTimeSalt;
-    String passAndSalt = str + saltCombined;
-    return performHash(passAndSalt);
+  public String combiningSalts (){
+    setSalt(salt, currentTimeSalt);
+    String combinedSalt = salt + currentTimeSalt;
+    return combinedSalt;
   }
 }
 

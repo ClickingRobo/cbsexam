@@ -1,13 +1,9 @@
 package controllers;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import cache.UserCache;
 import model.User;
-import org.apache.solr.common.util.Hash;
 import utils.Hashing;
 import utils.Log;
 
@@ -64,6 +60,8 @@ public class UserController {
    */
   public static ArrayList<User> getUsers() {
 
+    Hashing hashing = new Hashing();
+
     // Check for DB connection
     if (dbCon == null) {
       dbCon = new DatabaseController();
@@ -86,6 +84,7 @@ public class UserController {
                         rs.getString("last_name"),
                         rs.getString("password"),
                         rs.getString("email"));
+                        rs.getString("salt");
 
         // Add element to list
         users.add(user);
@@ -100,6 +99,8 @@ public class UserController {
 
   public static User createUser(User user) {
 
+    Hashing hashing = new Hashing();
+
     // Write in log that we've reach this step
     Log.writeLog(UserController.class.getName(), user, "Actually creating a user in DB", 0);
 
@@ -111,23 +112,31 @@ public class UserController {
       dbCon = new DatabaseController();
     }
 
+    //sets the salt from the server to the specific client
+    user.setSalt(hashing.combiningSalts());
+
+    //hashing password with sha algorithm
+    user.setPassword(Hashing.sha(user.getPassword(), user.getSalt()));
+
     // Insert the user in the DB
-    // TODO: Hash the user password before saving it (POSSIBLY FIXED).
+    // TODO: Hash the user password before saving it (FIXED).
     //Creates object to access method from the class since it's not static
-    Hashing hashing = new Hashing();
 
     int userID = dbCon.insert(
-            "INSERT INTO user(first_name, last_name, password, email, created_at) VALUES('"
+            "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
                     + user.getFirstname()
                     + "', '"
                     + user.getLastname()
                     + "', '"
-                    + hashing.hashAndSalt(user.getPassword())
+                    + user.getPassword()
                     + "', '"
                     + user.getEmail()
-                    + "', "
+                    + "', '"
                     + user.getCreatedTime()
-                    + ")");
+                    + "', '"
+                    + user.getSalt()
+                    + "')");
+
 
     if (userID != 0) {
       //Update the userid of the user before returning
@@ -184,6 +193,7 @@ public class UserController {
       dbCon = new DatabaseController();
     }
 
+
     //Authenticate user-login via email and password
     try {
       String sql = "SELECT * FROM user where email= \'" + user.getEmail() + "\' AND password = \'" + user.getPassword() + "\'";
@@ -196,6 +206,7 @@ public class UserController {
                         rs.getString("last_name"),
                         rs.getString("password"),
                         rs.getString("email"));
+
 
       }
     } catch (SQLException e) {
