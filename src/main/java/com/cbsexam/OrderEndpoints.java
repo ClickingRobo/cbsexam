@@ -38,8 +38,12 @@ public class OrderEndpoints {
     //Added encryption
     json = Encryption.encryptDecryptXOR(json);
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+    if (order != null) {
+      // Return a response with status 200 and JSON as type
+      return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+    } else {
+      return Response.status(400).entity("Could not do what's intended").build();
+    }
   }
 
   /** @return Responses */
@@ -59,8 +63,13 @@ public class OrderEndpoints {
     //Added encryption
     json = Encryption.encryptDecryptXOR(json);
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+
+    if (orders != null){
+      // Return a response with status 200 and JSON as type
+      return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+    } else {
+      return Response.status(400).entity("Could not do what's intended").build();
+    }
   }
 
   @POST
@@ -82,7 +91,6 @@ public class OrderEndpoints {
       // Return a response with status 200 and JSON as type
       return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
     } else {
-
       // Return a response with status 400 and a message in text
       return Response.status(400).entity("Could not create user").build();
     }

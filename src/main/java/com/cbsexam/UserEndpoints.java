@@ -36,9 +36,12 @@ public class UserEndpoints {
     //Added encryption
     json = Encryption.encryptDecryptXOR(json);
 
-    // Return the user with the status code 200
-    // TODO: What should happen if something breaks down?
-    return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+    // TODO: What should happen if something breaks down? (FIXED)
+    if (user != null){
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+    } else {
+      return Response.status(400).entity("Could not get user through the ID provided").build();
+    }
   }
 
   /** @return Responses */
@@ -49,24 +52,22 @@ public class UserEndpoints {
     // Write to log that we are here
     Log.writeLog(this.getClass().getName(), this, "Get all users", 0);
 
-    // Get a list of users
-    //ArrayList<User> users = UserController.getUsers();
-
+    // Get a list of users with cache
     ArrayList<User> users = userCache.getUsers(false);
 
     // TODO: Add Encryption to JSON (FIXED)
     // Transfer users to json in order to return it to the user
     String json = new Gson().toJson(users);
 
-    if (users == null){
-      userCache.getUsers(true);
-    }
-
     //Added encryption
     //json = Encryption.encryptDecryptXOR(json);
 
-    // Return the users with the status code 200
-    return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+    if (users != null){
+      // Return the users with the status code 200
+      return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
+    } else {
+      return Response.status(400).entity("Could not retrieve users").build();
+    }
   }
 
   @POST
@@ -119,10 +120,10 @@ public class UserEndpoints {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteUser(@PathParam("idUser") int idUser) {
 
-
     User user = UserController.getUser(idUser);
 
     User deletedUser = UserController.deleteUser(user);
+
     if (deletedUser != null) {
 
       String out = new Gson().toJson("Your user has now been deleted");
