@@ -188,16 +188,33 @@ public class UserController {
 
   public static User userAuthentication (User user) {
 
+    String salt = "";
+
     Log.writeLog(UserController.class.getName(), user, "Authenticating the user/log in", 0);
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
 
+    //Obtain salt from database
+    try{
+      String sqlGetSalt = "SELECT salt FROM user WHERE email=\'" + user.getEmail() + "\'";
+      ResultSet rs = dbCon.query(sqlGetSalt);
+      if (rs.next()){
+        salt = rs.getString("salt");
+      } else {
+        System.out.println("could not return salt based on email");
+        return null;
+      }
+    } catch (SQLException error){
+      error.printStackTrace();
+    }
+
 
     //Authenticate user-login via email and password
     try {
-      String sql = "SELECT * FROM user where email= \'" + user.getEmail() + "\' AND password = \'" + user.getPassword() + "\'";
+      String sql = "SELECT created_at FROM user WHERE email= \'" + user.getEmail() + "\' AND password = \'"
+              + Hashing.sha(user.getPassword(), salt) + "\'";
       ResultSet rs = dbCon.query(sql);
       if (rs.next()) {
         user =
@@ -207,7 +224,6 @@ public class UserController {
                         rs.getString("last_name"),
                         rs.getString("password"),
                         rs.getString("email"));
-
 
       }
     } catch (SQLException e) {
