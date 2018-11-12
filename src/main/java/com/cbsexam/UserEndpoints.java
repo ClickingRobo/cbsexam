@@ -1,13 +1,18 @@
 package com.cbsexam;
 
 import cache.UserCache;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.Gson;
 import controllers.UserController;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.User;
+import org.apache.commons.io.input.BOMInputStream;
 import utils.Encryption;
 import utils.Log;
 
@@ -101,30 +106,31 @@ public class UserEndpoints {
 
     User newUser = new Gson().fromJson(x, User.class);
 
-    User user = UserController.userAuthentication(newUser);
+    String token = UserController.userAuthentication(newUser);
 
-    if (user != null) {
+    if (token != null) {
 
-      String out = new Gson().toJson(user);
+        newUser.setToken(token);
+
+        String out = new Gson().toJson(newUser);
 
       // Return a response with status 200 and JSON as type
       return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
     } else {
-      return Response.status(400).entity("Could not create user").build();
+      return Response.status(400).entity("Could not log user in").build();
     }
   }
 
   // TODO: Make the system able to delete users (FIXED)
   @DELETE
-  @Path("/{idUser}")
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response deleteUser(@PathParam("idUser") int idUser) {
+  @Path("/")
+  //@Consumes(MediaType.APPLICATION_JSON)
+  //Takes the token through body instead of as a parameter
+  public Response deleteUser(String token) {
 
-    User user = UserController.getUser(idUser);
+    Boolean deletedUser = UserController.deleteUser(token);
 
-    User deletedUser = UserController.deleteUser(user);
-
-    if (deletedUser != null) {
+    if (deletedUser == true) {
 
       String out = new Gson().toJson("Your user has now been deleted");
 

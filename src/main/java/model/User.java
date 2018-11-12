@@ -10,8 +10,10 @@ public class User {
   private String password;
   private long createdTime;
   private String salt;
+  private String token;
 
-  public User(int id, String firstname, String lastname, String password, String email, long createdTime, String salt) {
+  public User(int id, String firstname, String lastname, String password, String email,
+              long createdTime, String salt, String token) {
     this.id = id;
     this.firstname = firstname;
     this.lastname = lastname;
@@ -19,6 +21,7 @@ public class User {
     this.email = email;
     this.createdTime = createdTime;
     this.salt = salt;
+    this.token = token;
   }
 
   public User(int id, String firstname, String lastname, String password, String email) {
@@ -83,5 +86,13 @@ public class User {
 
   public void setSalt(String salt) {
     this.salt = salt;
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
   }
 }

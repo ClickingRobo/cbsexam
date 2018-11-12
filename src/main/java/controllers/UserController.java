@@ -3,6 +3,14 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import model.User;
 import utils.Hashing;
 import utils.Log;
@@ -38,9 +46,7 @@ public class UserController {
                         rs.getString("first_name"),
                         rs.getString("last_name"),
                         rs.getString("password"),
-                        rs.getString("email"),
-                        rs.getLong("created_at"),
-                        rs.getString("salt"));
+                        rs.getString("email"));
 
         // return the create object
         return user;
@@ -85,7 +91,9 @@ public class UserController {
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getLong("created_at"),
-                        rs.getString("salt"));
+                        rs.getString("salt"),
+                        rs.getString("token"));
+
 
         // Add element to list
         users.add(user);
@@ -152,19 +160,29 @@ public class UserController {
   }
 
 
-  public static User deleteUser(User user) {
+  //able to delete your own user through token implementation - so that you can only delete your own user
+  public static boolean deleteUser(String token) {
 
-    Log.writeLog(UserController.class.getName(), user, "Deleting an existing user from DB", 0);
+    Log.writeLog(UserController.class.getName(), null, "Deleting an existing user from DB", 0);
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
 
-    String sqlDelete = "DELETE * FROM user WHERE id = " + user.id;
+    //Verifies token through the method "verifyToken and takes the token (String) as parameter
+    DecodedJWT decodedJWT = verifyToken(token);
 
-    dbCon.insert(sqlDelete);
+    //deletes user with the signed claim (ID) from the token --> your own userID
+    String sqlDelete = "DELETE FROM user WHERE id = " + decodedJWT.getClaim("userid").asInt();
 
-    return user;
+    int rs = dbCon.insert(sqlDelete);
+
+    //returns 1 if executed correctly (the insert method is build like that)
+    if (rs > 0){
+        return true;
+    } else {
+        return false;
+    }
   }
 
 
@@ -183,18 +201,23 @@ public class UserController {
     dbCon.insert(sqlUpdate);
 
     return user;
+
   }
 
 
-  public static User userAuthentication (User user) {
+  public static String userAuthentication (User user) {
 
     String salt = "";
+    int userID = 0;
+    long date = System.currentTimeMillis();
+    String newAccessToken = "";
 
     Log.writeLog(UserController.class.getName(), user, "Authenticating the user/log in", 0);
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
+
 
     //Obtain salt from database
     try{
@@ -213,22 +236,68 @@ public class UserController {
 
     //Authenticate user-login via email and password
     try {
-      String sql = "SELECT created_at FROM user WHERE email= \'" + user.getEmail() + "\' AND password = \'"
+      String sql = "SELECT id FROM user WHERE email= \'" + user.getEmail() + "\' AND password = \'"
               + Hashing.sha(user.getPassword(), salt) + "\'";
       ResultSet rs = dbCon.query(sql);
       if (rs.next()) {
-        user =
-                new User(
-                        rs.getInt("id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
-                        rs.getString("password"),
-                        rs.getString("email"));
-
+        userID = rs.getInt("id");
       }
     } catch (SQLException e) {
       e.printStackTrace();
     }
-    return user;
+
+
+    //generates token via JWT. Has issue and expiriation date along with a claim on userID.
+    try{
+      //https://github.com/auth0/java-jwt
+      //Assigns a token for the user using JWT
+      Algorithm algorithm = Algorithm.HMAC256("secret");
+      newAccessToken = JWT.create()
+              .withIssuer("auth0")
+              .withIssuedAt(new Date(date))
+              //Token is available for about 28 hours
+              .withExpiresAt(new Date(date+100000000))
+              .withClaim("userid", userID)
+              .sign(algorithm);
+
+    } catch(JWTCreationException exception){
+      exception.printStackTrace();
+    }
+
+    //Updates token for user if AccessToken has been initiated
+    if(newAccessToken != null){
+
+          String sql = "UPDATE user SET " + "token = \'" + newAccessToken + "\' " +
+                  "WHERE id = \'" + userID + "\'";
+          dbCon.insert(sql);
+
+          return newAccessToken;
+
+    }
+
+    return null;
   }
+
+
+  //Method able to decode token
+  public static DecodedJWT verifyToken (String token){
+
+    //declare
+    DecodedJWT jwt;
+
+    try{
+      Algorithm algorithm = Algorithm.HMAC256("secret");
+      JWTVerifier verifier = JWT.require(algorithm)
+              .withIssuer("auth0")
+              .build();
+      jwt = verifier.verify(token);
+
+      return jwt;
+
+    } catch (JWTVerificationException exception){
+
+    }
+   return null;
+  }
+
 }
