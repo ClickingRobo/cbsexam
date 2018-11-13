@@ -1,18 +1,13 @@
 package com.cbsexam;
 
 import cache.UserCache;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.Gson;
 import controllers.UserController;
 import java.util.ArrayList;
-import java.util.Date;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.User;
-import org.apache.commons.io.input.BOMInputStream;
 import utils.Encryption;
 import utils.Log;
 
@@ -98,7 +93,7 @@ public class UserEndpoints {
     }
   }
 
-  // TODO: Make the system able to login users and assign them a token to use throughout the system.
+  // TODO: Make the system able to login users and assign them a token to use throughout the system (FIXED).
   @POST
   @Path("/login")
   @Consumes(MediaType.APPLICATION_JSON)
