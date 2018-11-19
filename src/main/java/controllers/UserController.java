@@ -186,22 +186,46 @@ public class UserController {
   }
 
 
-  //Make some logic so that you can't change to an existing email adress and hash password whilst creating after a new password
-  public static User updateUser(User user) {
+  //Make some logic so that you can't change to an existing email address and hash password whilst creating after a new password
+  public static boolean updateUser(String token, User user) {
 
-    Log.writeLog(UserController.class.getName(), user, "Updating an existing user from DB", 0);
+    String salt = "";
+
+    Log.writeLog(UserController.class.getName(), null, "Updating an existing user from DB", 0);
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
 
-    //Apply some logic so that 2x users cannot have the same email adress!
-    String sqlUpdate = "UPDATE * FROM user SET firstname = ?, lastname = ? WHERE id = " + user.id;
+    DecodedJWT decodedJWT = verifyToken(token);
 
-    dbCon.insert(sqlUpdate);
+    try {
+      String sqlGetSalt = "SELECT salt FROM user WHERE id =\'" + decodedJWT.getClaim("userid").asInt() +"'";
+      ResultSet rs = dbCon.query(sqlGetSalt);
+      if (rs.next()){
+        salt = rs.getString("salt");
+      } else {
+        System.out.println("could not return salt based on userid from claim in token");
+      }
+    } catch (SQLException e){
+      e.printStackTrace();
+    }
 
-    return user;
+    String sql = "UPDATE user SET " +
+                 "first_name = COALESCE(\'" + user.getFirstname() + "\', first_name), " +
+                 "last_name = COALESCE(\'" + user.getLastname() + "\', last_name), " +
+                 "password = COALESCE(\'" + Hashing.sha(user.getPassword(), salt) + "\', password), " +
+                 "email = COALESCE(\'" + user.getEmail() + "\', email) " +
+                 "WHERE id =" + decodedJWT.getClaim("userid").asInt() + "";
 
+
+    int rs = dbCon.insert(sql);
+
+    if (rs > 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 

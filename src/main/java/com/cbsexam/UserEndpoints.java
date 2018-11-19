@@ -2,6 +2,8 @@ package com.cbsexam;
 
 import cache.UserCache;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import controllers.UserController;
 import java.util.ArrayList;
 import javax.ws.rs.*;
@@ -135,7 +137,8 @@ public class UserEndpoints {
     }
   }
 
-  // TODO: Make the system able to update users
+  /*
+
   @POST
   @Path("/{idUser}")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -153,5 +156,48 @@ public class UserEndpoints {
     } else {
       return Response.status(400).entity("Your user COULD NOT be updated").build();
     }
+    */
+
+  // TODO: Make the system able to update users(FIXED)
+  @POST
+  @Path("/update")
+  //@Consumes(MediaType.APPLICATION_JSON)
+  public Response updateUser(String body) {
+
+    //User updatedUser = new Gson().fromJson(token, User.class);
+
+    //SOURCE: https://stackoverflow.com/questions/4110664/gson-directly-convert-string-to-jsonobject-no-pojo
+    //JsonParser
+    JsonParser parser = new JsonParser();
+    //converts String value of body to JsonObject
+    JsonObject o = parser.parse(body).getAsJsonObject();
+    //Obtains the String value of the token
+    String token = new Gson().fromJson(o.get("token"), String.class);
+    //Obtains the Object value of the user
+    User u = new Gson().fromJson(o.get("user"), User.class);
+    //This is done to seperate the user object and the token string from one another
+
+    //both parameters (token and user is passed)
+    Boolean isUpdated = UserController.updateUser(token, u);
+
+    if (isUpdated == true) {
+
+      String out = new Gson().toJson("Your user has now been updated");
+
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
+    } else {
+      return Response.status(400).entity("Your user COULD NOT be updated").build();
+    }
+
+
+
   }
+
+
+
+
+
+
+
+
 }
