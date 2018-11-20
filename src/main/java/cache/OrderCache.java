@@ -23,7 +23,7 @@ public class OrderCache {
     public ArrayList<Order> getOrders (Boolean forceUpdate){
 
         if (forceUpdate
-        || ((this.created / 1000L + this.ttl) >= (System.currentTimeMillis() / 1000L))
+        || ((this.created + this.ttl) <= (System.currentTimeMillis() / 1000L))
         || this.orders == null){
 
             ArrayList<Order> orders = OrderController.getOrders();

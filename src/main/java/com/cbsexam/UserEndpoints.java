@@ -62,7 +62,7 @@ public class UserEndpoints {
     String json = new Gson().toJson(users);
 
     //Added encryption
-    //json = Encryption.encryptDecryptXOR(json);
+    json = Encryption.encryptDecryptXOR(json);
 
     if (users != null){
       // Return the users with the status code 200
@@ -85,6 +85,9 @@ public class UserEndpoints {
 
     // Get the user back with the added ID and return it to the user
     String json = new Gson().toJson(createUser);
+
+    //added encryption
+    json = Encryption.encryptDecryptXOR(json);
 
     // Return the data to the user
     if (createUser != null) {
@@ -110,6 +113,9 @@ public class UserEndpoints {
         newUser.setToken(token);
 
         String out = new Gson().toJson(newUser);
+
+        //added encryption
+        out = Encryption.encryptDecryptXOR(out);
 
       // Return a response with status 200 and JSON as type
       return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
@@ -188,16 +194,5 @@ public class UserEndpoints {
     } else {
       return Response.status(400).entity("Your user COULD NOT be updated").build();
     }
-
-
-
   }
-
-
-
-
-
-
-
-
 }

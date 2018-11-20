@@ -86,13 +86,16 @@ public class OrderEndpoints {
     // Get the user back with the added ID and return it to the user
     String json = new Gson().toJson(createdOrder);
 
+    //Added encryption
+    json = Encryption.encryptDecryptXOR(json);
+
     // Return the data to the user
     if (createdOrder != null) {
       // Return a response with status 200 and JSON as type
       return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
     } else {
       // Return a response with status 400 and a message in text
-      return Response.status(400).entity("Could not create user").build();
+      return Response.status(400).entity("Could not create order").build();
     }
   }
 }
