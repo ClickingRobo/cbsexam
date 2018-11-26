@@ -20,13 +20,25 @@ public class OrderController {
 
   public static Order getOrder(int id) {
 
+    Map<Integer, Order> hashmap = new HashMap<>();
+
     // check for connection
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
 
     // Build SQL string to query
-    String sql = "SELECT * FROM orders where id=" + id;
+    String sql = "SELECT *, orders.id as order_id, billing_address.name as billing_address_name, shipping_address.name as " +
+            "shipping_address_name, user.id as user_id, billing_address.id as billing_address_id, " +
+            "shipping_address.id as shipping_address_id, " +
+            "product.id as product_id, line_item.id as line_item_id " +
+            "FROM orders " +
+            "INNER JOIN user on user.id = orders.user_id " +
+            "INNER JOIN address as billing_address ON orders.billing_address_id = billing_address.id " +
+            "INNER JOIN address as shipping_address ON orders.shipping_address_id = shipping_address.id " +
+            "INNER JOIN line_item ON orders.id = line_item.order_id " +
+            "INNER JOIN product ON line_item.product_id = product.id " +
+            "WHERE order_id = " + id + "";
 
     // Do the query in the database and create an empty object for the results
     ResultSet rs = dbCon.query(sql);
@@ -35,23 +47,74 @@ public class OrderController {
     try {
       if (rs.next()) {
 
-        // Perhaps we could optimize things a bit here and get rid of nested queries.
-        User user = UserController.getUser(rs.getInt("user_id"));
-        ArrayList<LineItem> lineItems = LineItemController.getLineItemsForOrder(rs.getInt("id"));
-        Address billingAddress = AddressController.getAddress(rs.getInt("billing_address_id"));
-        Address shippingAddress = AddressController.getAddress(rs.getInt("shipping_address_id"));
+        int orderid = rs.getInt("order_id");
 
-        // Create an object instance of order from the database dataa
-        order =
-            new Order(
-                rs.getInt("id"),
-                user,
-                lineItems,
-                billingAddress,
-                shippingAddress,
-                rs.getFloat("order_total"),
-                rs.getLong("created_at"),
-                rs.getLong("updated_at"));
+        User user = new User(
+                rs.getInt("user_id"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
+                rs.getString("password"),
+                rs.getString("email"));
+
+
+        Address billingAddress =
+                new Address(
+                        rs.getInt("billing_address_id"),
+                        rs.getString("billing_address_name"),
+                        rs.getString("street_address"),
+                        rs.getString("city"),
+                        rs.getString("zipcode")
+                );
+
+        Address shippingAddress =
+                new Address(
+                        rs.getInt("shipping_address_id"),
+                        rs.getString("shipping_address_name"),
+                        rs.getString("street_address"),
+                        rs.getString("city"),
+                        rs.getString("zipcode")
+                );
+
+        Product product =
+                new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("product_name"),
+                        rs.getString("sku"),
+                        rs.getFloat("price"),
+                        rs.getString("description"),
+                        rs.getInt("stock"));
+
+
+        LineItem lineItem =
+                new LineItem(
+                        rs.getInt("line_item_id"),
+                        product,
+                        rs.getInt("quantity"),
+                        rs.getFloat("price"));
+
+
+
+        if (!hashmap.containsKey(orderid)) {
+
+          order =
+                  new Order(
+                          rs.getInt("order_id"),
+                          user,
+                          //arraylist since lineitem is specified as such
+                          new ArrayList<LineItem>(),
+                          billingAddress,
+                          shippingAddress,
+                          rs.getFloat("order_total"),
+                          rs.getLong("created_at"),
+                          rs.getLong("updated_at"));
+
+
+          hashmap.put(orderid, order);
+        }
+
+        order = hashmap.get(orderid);
+        order.getLineItems().add(lineItem);
+
 
         // Returns the build order
         return order;
