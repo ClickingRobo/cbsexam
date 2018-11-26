@@ -22,6 +22,11 @@ public class DatabaseController {
    * @return a Connection object
    */
   public static Connection getConnection() {
+
+    //If connection is already established, then return this
+    if (connection != null) {
+      return connection;
+    }
     try {
       // Set the dataabase connect with the data from the config
       String url =
