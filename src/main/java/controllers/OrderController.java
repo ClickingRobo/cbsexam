@@ -144,6 +144,7 @@ public class OrderController {
       dbCon = new DatabaseController();
     }
 
+    //SQL query that works with alias and inner joins
     String sql = "SELECT *, orders.id as order_id, billing_address.name as billing_address_name, shipping_address.name as " +
             "shipping_address_name, user.id as user_id, billing_address.id as billing_address_id, " +
             "shipping_address.id as shipping_address_id, " +
@@ -163,7 +164,8 @@ public class OrderController {
 
         int orderid = rs.getInt("order_id");
 
-        // Perhaps we could optimize things a bit here and get rid of nested queries.
+        //Looks for data in five/all tables. Note that some of the
+        //columnLabel has been renamed i correlation to the new alias in the SQL query
         User user = new User(
                 rs.getInt("user_id"),
                 rs.getString("first_name"),
@@ -223,7 +225,7 @@ public class OrderController {
                           rs.getLong("created_at"),
                           rs.getLong("updated_at"));
 
-          //uses put (first parameter is key and second is what value should be associated with the specified key
+          //uses put (first parameter is key and second is what value should be associated with the specified key)
           hashmap.put(orderid, order);
 
           // Add order to our list
@@ -232,9 +234,6 @@ public class OrderController {
 
         Order order = hashmap.get(orderid);
         order.getLineItems().add(lineItem);
-        //ArrayList<LineItem> lineItems = LineItemController.getLineItemsForOrder(rs.getInt("id"));
-        //Address billingAddress = AddressController.getAddress(rs.getInt("billing_address_id"));
-        //Address shippingAddress = AddressController.getAddress(rs.getInt("shipping_address_id"));
 
 
       }
@@ -317,6 +316,7 @@ public class OrderController {
         exception.printStackTrace();
       if (connection != null) {
         try {
+          //Able to rollback changes
           System.out.print("Transaction will be rolled back now");
           connection.rollback();
         } catch (SQLException e) {
@@ -325,6 +325,7 @@ public class OrderController {
       }
     } finally {
         try {
+          //always sets autocommit to true again afterwards
           connection.setAutoCommit(true);
       } catch (SQLException e) {
           e.printStackTrace();

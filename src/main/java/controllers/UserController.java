@@ -5,12 +5,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import cache.UserCache;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.cbsexam.UserEndpoints;
 import model.User;
 import utils.Hashing;
 import utils.Log;
@@ -97,6 +99,7 @@ public class UserController {
 
         // Add element to list
         users.add(user);
+
       }
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
@@ -211,6 +214,7 @@ public class UserController {
       e.printStackTrace();
     }
 
+    //Uses the COALESCE function to update user parameters
     String sql = "UPDATE user SET " +
                  "first_name = COALESCE(\'" + user.getFirstname() + "\', first_name), " +
                  "last_name = COALESCE(\'" + user.getLastname() + "\', last_name), " +
@@ -231,6 +235,7 @@ public class UserController {
 
   public static String userAuthentication (User user) {
 
+    //declares variables
     String salt = "";
     int userID = 0;
     long date = System.currentTimeMillis();
@@ -291,6 +296,7 @@ public class UserController {
     //Updates token for user if AccessToken has been initiated
     if(newAccessToken != null){
 
+          //sets token value
           String sql = "UPDATE user SET " + "token = \'" + newAccessToken + "\' " +
                   "WHERE id = \'" + userID + "\'";
           dbCon.insert(sql);

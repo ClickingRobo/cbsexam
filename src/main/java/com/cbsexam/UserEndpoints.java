@@ -143,27 +143,7 @@ public class UserEndpoints {
     }
   }
 
-  /*
-
-  @POST
-  @Path("/{idUser}")
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response updateUser(@PathParam("idUser") int idUser) {
-
-    User user = UserController.getUser(idUser);
-
-    User updatedUser = UserController.updateUser(user);
-
-    if (updatedUser !=null) {
-
-      String out = new Gson().toJson("Your user has now been updated");
-
-      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(out).build();
-    } else {
-      return Response.status(400).entity("Your user COULD NOT be updated").build();
-    }
-    */
-
+  
   // TODO: Make the system able to update users(FIXED)
   @POST
   @Path("/update")
@@ -181,7 +161,7 @@ public class UserEndpoints {
     String token = new Gson().fromJson(o.get("token"), String.class);
     //Obtains the Object value of the user
     User u = new Gson().fromJson(o.get("user"), User.class);
-    //This is done to seperate the user object and the token string from one another
+    //This is done to separate the user object and the token string from one another
 
     //both parameters (token and user is passed)
     Boolean isUpdated = UserController.updateUser(token, u);

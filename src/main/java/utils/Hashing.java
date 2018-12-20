@@ -79,9 +79,10 @@ public final class Hashing {
   }
 
 
-  //----------------------------------------------------------------------------------------------
   //References: YouTube: Java Basics - StringBuilder - https://www.youtube.com/watch?v=MxfmXw2O64E
   //YouTube: How to generate random numeric[...] https://www.youtube.com/watch?v=kgx33gkBPWI
+
+  //Random for pseudo-generated number, Stringbuilder for mutable string sequence.
   private static String randomizeSalt(String salt){
     Random random = new Random();
     StringBuilder sb = new StringBuilder(10);
@@ -96,16 +97,16 @@ public final class Hashing {
     return Hashing.randomizeSalt(salt);
   }
 
+  //Sets salt values
   public void setSalt (String salt, String currentTimeSalt){
     this.salt = performSalt(salt);
     this.currentTimeSalt = currentTimeSalt;
   }
 
+  //combines salt from stringbuilder and current time in milliseconds
   public String combiningSalts (){
     setSalt(salt, currentTimeSalt);
     String combinedSalt = salt + currentTimeSalt;
     return combinedSalt;
   }
 }
-
-//--------------------
